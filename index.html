@@ -52,7 +52,7 @@
         const apiClientKey = '47ff0b7cdbd00114';
         const sessionId = 'algtestsession094309894571';
         const userId = 'algtestuser630802189459';
-        const placements = 'cart_page.recs_1';
+        const placements = 'item_page.recs_1';
         
         // First API call to get product recommendations
         fetch(`https://recs.richrelevance.com/rrserver/api/rrPlatform/recsForPlacements?apiKey=${apiKey}&apiClientKey=${apiClientKey}&sessionId=${sessionId}&userId=${userId}&placements=${placements}&productId=12986819`)
@@ -60,12 +60,13 @@
             .then(data => {
                 const productsContainer = document.getElementById('products');
                 const productIds = data.placements[0].recommendedProducts.map(product => product.id).join('|');
-
+                const rcs = data.placements[0].rcs || '';
+                console.log(rcs);
                 data.placements[0].recommendedProducts.forEach(product => {
                     const productDiv = document.createElement('div');
                     productDiv.className = 'product';
                     productDiv.innerHTML = `
-                        <img src="${product.imageURL}" alt="${product.name}">
+                        <img class="product_img" src="${product.imageURL}" alt="${product.name}">
                         <h2>${product.name}</h2>
                         <a href="${product.clickTrackingURL}" target="_blank">View Product</a>
                     `;
@@ -73,7 +74,7 @@
                 });
 
                 // Second API call to get additional product information
-                fetch(`https://recs.richrelevance.com/rrserver/api/engage/spMessages?apiClientKey=${apiClientKey}&apiKey=${apiKey}&sessionId=${sessionId}&placements=list_page&p=${productIds}&userId=${userId}&rcs=`)
+                fetch(`https://recs.richrelevance.com/rrserver/api/engage/spMessages?apiClientKey=${apiClientKey}&apiKey=${apiKey}&sessionId=${sessionId}&placements=${placements}&p=${productIds}&userId=${userId}&rcs=${rcs}`)
                     .then(response => response.json())
                     .then(data => {
                         console.log('Additional Product Information:', data);
