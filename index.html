@@ -15,7 +15,6 @@
             gap: 10px;
         }
         .product {
-            border: 1px solid #ccc;
             padding: 10px;
             margin: 10px;
             text-align: center;
@@ -48,14 +47,14 @@
     <div id="products"></div>
 
     <script>
-        const apiKey = 'c4d3764d15a6cea7';
-        const apiClientKey = '47ff0b7cdbd00114';
+        const apiKey = 'e8da9bb22c38c228';
+        const apiClientKey = '21280b5d95ea9121';
         const sessionId = 'algtestsession094309894571';
         const userId = 'algtestuser630802189459';
         const placements = 'item_page.recs_1';
         
         // First API call to get product recommendations
-        fetch(`https://recs.richrelevance.com/rrserver/api/rrPlatform/recsForPlacements?apiKey=${apiKey}&apiClientKey=${apiClientKey}&sessionId=${sessionId}&userId=${userId}&placements=${placements}&productId=12986819`)
+        fetch(`https://integration.richrelevance.com/rrserver/api/rrPlatform/recsForPlacements?apiKey=${apiKey}&apiClientKey=${apiClientKey}&sessionId=${sessionId}&userId=${userId}&placements=${placements}&productId=390061`)
             .then(response => response.json())
             .then(data => {
                 const productsContainer = document.getElementById('products');
@@ -66,15 +65,16 @@
                     const productDiv = document.createElement('div');
                     productDiv.className = 'product';
                     productDiv.innerHTML = `
-                        <img class="product_img" src="${product.imageURL}" alt="${product.name}">
+                    <a href="${product.clickTrackingURL}" class="row" target="_blank">
+                        <img class="product_img product_main" src="${product.imageURL}" alt="${product.name}">
                         <h2>${product.name}</h2>
-                        <a href="${product.clickTrackingURL}" target="_blank">View Product</a>
+                    </a>
                     `;
                     productsContainer.appendChild(productDiv);
                 });
 
                 // Second API call to get additional product information
-                fetch(`https://recs.richrelevance.com/rrserver/api/engage/spMessages?apiClientKey=${apiClientKey}&apiKey=${apiKey}&sessionId=${sessionId}&placements=${placements}&p=${productIds}&userId=${userId}&rcs=${rcs}`)
+                fetch(`https://integration.richrelevance.com/rrserver/api/engage/spMessages?apiClientKey=${apiClientKey}&apiKey=${apiKey}&sessionId=${sessionId}&placements=item_page&p=${productIds}&userId=${userId}&rcs=${rcs}`)
                     .then(response => response.json())
                     .then(data => {
                         console.log('Additional Product Information:', data);
