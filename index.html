@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Recommendations</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        #products {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+        }
+        .product {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin: 10px;
+            text-align: center;
+            flex: 1 1 200px;
+            max-width: 200px;
+        }
+        .product img {
+            max-width: 100%;
+            height: auto;
+        }
+        .product h2 {
+            font-size: 1.2em;
+            margin: 10px 0;
+        }
+        .product a {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 10px 15px;
+            color: #fff;
+            background-color: #007bff;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .product a:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div id="products"></div>
+
+    <script>
+        const apiKey = 'c4d3764d15a6cea7';
+        const apiClientKey = '47ff0b7cdbd00114';
+        const sessionId = 'algtestsession094309894571';
+        const userId = 'algtestuser630802189459';
+        const placements = 'cart_page.recs_1';
+        
+        // First API call to get product recommendations
+        fetch(`https://recs.richrelevance.com/rrserver/api/rrPlatform/recsForPlacements?apiKey=${apiKey}&apiClientKey=${apiClientKey}&sessionId=${sessionId}&userId=${userId}&placements=${placements}&productId=12986819`)
+            .then(response => response.json())
+            .then(data => {
+                const productsContainer = document.getElementById('products');
+                const productIds = data.placements[0].recommendedProducts.map(product => product.id).join('|');
+
+                data.placements[0].recommendedProducts.forEach(product => {
+                    const productDiv = document.createElement('div');
+                    productDiv.className = 'product';
+                    productDiv.innerHTML = `
+                        <img src="${product.imageURL}" alt="${product.name}">
+                        <h2>${product.name}</h2>
+                        <a href="${product.clickTrackingURL}" target="_blank">View Product</a>
+                    `;
+                    productsContainer.appendChild(productDiv);
+                });
+
+                // Second API call to get additional product information
+                fetch(`https://recs.richrelevance.com/rrserver/api/engage/spMessages?apiClientKey=${apiClientKey}&apiKey=${apiKey}&sessionId=${sessionId}&placements=list_page&p=${productIds}&userId=${userId}&rcs=`)
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('Additional Product Information:', data);
+                        // Process and display additional product information as needed
+                    })
+                    .catch(error => console.error('Error fetching additional product information:', error));
+            })
+            .catch(error => console.error('Error fetching product recommendations:', error));
+    </script>
+</body>
+</html>
