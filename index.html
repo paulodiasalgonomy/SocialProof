@@ -8,16 +8,23 @@
         body {
             font-family: Arial, sans-serif;
         }
+        #container {
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+        }
         #products {
             display: flex;
             flex-wrap: wrap;
-            justify-content: center;
-            gap: 10px;
+            justify-content: space-around;
+            gap: 2px;
+            font-size: 11px;
+            flex: 1;
         }
         .product {
             border: 1px solid #ccc;
-            padding: 10px;
-            margin: 10px;
+            padding: 5px;
+            margin: 5px;
             text-align: center;
             flex: 1 1 200px;
             max-width: 200px;
@@ -34,18 +41,58 @@
             display: inline-block;
             margin-top: 10px;
             padding: 10px 15px;
-
             text-decoration: none;
             border-radius: 5px;
+            color: rgb(73, 73, 73);
         }
-        .product a:hover {
-            background-color: #0056b3;
-            color: #fff;
+        #countdown {
+            font-size: 16px;
+            padding: 10px;
+            background-color: #f8f8f8;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            text-align: center;
+            display: inline-flex;
+            margin: 8px;
+            gap: 10px;
+        }
+        .countdown-item {
+            display: flex;
+            flex-direction: column-reverse;
+            align-items: center;
+            max-width: 50px;
+        }
+        .countdown-item span {
+            display: block;
+            width: 100%;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .countdown-item label {
+            width: 100%;
+            font-size: 14px;
+            color: #555;
+        }
+        #header{
+            text-align: right;
+        }
+        #messageRecs{
+            margin-left: 8px;
+            float: left;
         }
     </style>
 </head>
 <body>
-    <div id="products"></div>
+    <div id="container">
+        <div id="header">
+            <h3 id="messageRecs">MESSAGE TEXT PLACEHOLDER</h3>
+            <div id="countdown"></div>
+        </div>
+        <div id="bottom">
+            <div id="products">
+            </div>
+        </div>
+    </div>
 
     <script>
         const apiKey = 'e8da9bb22c38c228';
@@ -53,33 +100,114 @@
         const sessionId = 'algtestsession094309894571';
         const userId = 'algtestuser630802189459';
         const placements = 'item_page.recs_1';
-        
-        // First API call to get product recommendations
+        const endDate = new Date('2024-12-31T23:59:00'); // Data final do countdown
+
+        // Função para atualizar mensagens intercaladas
+        function updateMessages(productElement, messages) {
+            const finalMessagesContainer = productElement.querySelector('.finalMessages');
+            let currentIndex = 0;
+
+            // Limpar mensagens existentes
+            finalMessagesContainer.innerHTML = '';
+
+            // Função para atualizar a mensagem exibida
+            function showNextMessage() {
+                if (messages.length === 0) return;
+                finalMessagesContainer.textContent = messages[currentIndex].finalMessage;
+                currentIndex = (currentIndex + 1) % messages.length;
+            }
+
+            // Exibir a primeira mensagem e iniciar o loop
+            showNextMessage();
+            setInterval(showNextMessage, 3000); // Altere o intervalo conforme necessário
+        }
+
+        // Função para iniciar o countdown
+        function startCountdown() {
+            const countdownElement = document.getElementById('countdown');
+
+            function updateCountdown() {
+                const now = new Date();
+                const timeLeft = endDate - now;
+
+                if (timeLeft <= 0) {
+                    countdownElement.innerHTML = '<span>Countdown ended!</span>';
+                    clearInterval(countdownInterval);
+                    return;
+                }
+
+                const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+
+                countdownElement.innerHTML = `
+                    <div class="countdown-item">
+                        <span>${days}</span>
+                        <label>Days</label>
+                    </div>
+                    <div class="countdown-item">
+                        <span>${hours}</span>
+                        <label>Hours</label>
+                    </div>
+                    <div class="countdown-item">
+                        <span>${minutes}</span>
+                        <label>Minutes</label>
+                    </div>
+                    <div class="countdown-item">
+                        <span>${seconds}</span>
+                        <label>Seconds</label>
+                    </div>
+                `;
+            }
+
+            // Atualizar o countdown imediatamente e então a cada segundo
+            updateCountdown();
+            const countdownInterval = setInterval(updateCountdown, 1000);
+        }
+
+        // Iniciar o countdown
+        startCountdown();
+
+        // Primeiro API call para obter recomendações de produtos
         fetch(`https://integration.richrelevance.com/rrserver/api/rrPlatform/recsForPlacements?apiKey=${apiKey}&apiClientKey=${apiClientKey}&sessionId=${sessionId}&userId=${userId}&placements=${placements}&productId=390061`)
             .then(response => response.json())
             .then(data => {
                 const productsContainer = document.getElementById('products');
-                const productIds = data.placements[0].recommendedProducts.map(product => product.id).join('|');
-                const rcs = data.placements[0].rcs || '';
-                console.log(rcs);
-                data.placements[0].recommendedProducts.forEach(product => {
+                const recommendedProducts = data.placements[0].recommendedProducts;
+                const productIds = recommendedProducts.map(product => product.id).join('|');
+                const rcs = data.rcs || '';
+
+                const messageRecs = document.getElementById('messageRecs');
+                messageRecs.textContent =data.placements[0].strategyMessage || '';
+
+                recommendedProducts.forEach(product => {
                     const productDiv = document.createElement('div');
                     productDiv.className = 'product';
+                    productDiv.setAttribute('data-product-id', product.id);
                     productDiv.innerHTML = `
-                    <a href="${product.clickTrackingURL}" class="row" target="_blank">
-                        <img class="product_img product_main" src="${product.imageURL}" alt="${product.name}">
-                        <h2>${product.name}</h2>
-                    </a>
+                        <a href="${product.clickTrackingURL}" class="row" target="_blank">
+                            <img class="product_img product_main" src="${product.imageURL}" alt="${product.name}">
+                            <h2>${product.name}</h2>
+                            <div class="finalMessages"></div>
+                        </a>
                     `;
                     productsContainer.appendChild(productDiv);
                 });
 
-                // Second API call to get additional product information
+                // Segunda API call para obter informações adicionais dos produtos
                 fetch(`https://integration.richrelevance.com/rrserver/api/engage/spMessages?apiClientKey=${apiClientKey}&apiKey=${apiKey}&sessionId=${sessionId}&placements=item_page&p=${productIds}&userId=${userId}&rcs=${rcs}`)
                     .then(response => response.json())
                     .then(data => {
-                        console.log('Additional Product Information:', data);
-                        // Process and display additional product information as needed
+                        const displayInformationList = data.dynamicSocialProofMessages[0].displayInformationList || [];
+                        
+                        displayInformationList.forEach(info => {
+                            const productId = info.productId;
+                            const productElement = document.querySelector(`.product[data-product-id="${productId}"]`);
+                            if (productElement) {
+                                updateMessages(productElement, info.messageList);
+                            }
+                        });
                     })
                     .catch(error => console.error('Error fetching additional product information:', error));
             })
